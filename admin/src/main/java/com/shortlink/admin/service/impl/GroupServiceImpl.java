@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.shortlink.admin.common.biz.user.UserContext;
 import com.shortlink.admin.dao.entity.GroupDO;
 import com.shortlink.admin.dao.mapper.GroupMapper;
 import com.shortlink.admin.dto.resp.ShortLinkGroupRespDTO;
@@ -25,8 +26,10 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
         do {
             gid = RandomGenerator.generateRandom(6);
         } while (hasGid(gid));
-        GroupDO groupDO = GroupDO.builder().gid(gid)
+        GroupDO groupDO = GroupDO.builder()
+                .gid(gid)
                 .name(groupName)
+                .username(UserContext.getUsername())
                 .sortOrder(0)
                 .build();
         baseMapper.insert(groupDO);
@@ -35,7 +38,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
     @Override
     public List<ShortLinkGroupRespDTO> listGroup() {
         LambdaQueryWrapper<GroupDO> queryWrapper = Wrappers.lambdaQuery(GroupDO.class)
-                .eq(GroupDO::getUsername, "yanzu")
+                .eq(GroupDO::getUsername, UserContext.getUsername())
                 .orderByDesc(GroupDO::getSortOrder, GroupDO::getUpdateTime);
         List<GroupDO> list = baseMapper.selectList(queryWrapper);
         return BeanUtil.copyToList(list, ShortLinkGroupRespDTO.class);
@@ -44,7 +47,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
     private boolean hasGid(String gid) {
         LambdaQueryWrapper<GroupDO> queryWrapper = Wrappers.lambdaQuery(GroupDO.class)
                 .eq(GroupDO::getGid, gid)
-                .eq(GroupDO::getUsername, null);
+                .eq(GroupDO::getUsername, UserContext.getUsername());
         GroupDO result = baseMapper.selectOne(queryWrapper);
         return result != null;
     }

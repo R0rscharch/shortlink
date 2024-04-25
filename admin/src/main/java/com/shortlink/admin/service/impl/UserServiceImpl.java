@@ -97,25 +97,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         if (result == null) {
             throw new ClientException(UserErrorCodeEnum.USER_NULL);
         }
-        Boolean login = stringRedisTemplate.hasKey("login:" + username);
+        Boolean login = stringRedisTemplate.hasKey("login_" + username);
         if (login != null && login) {
             throw new ClientException("用户已登录");
         }
         String uuid = UUID.randomUUID().toString();
-        stringRedisTemplate.opsForHash().put("login:" + username, uuid, JSON.toJSONString(result));
-        stringRedisTemplate.expire("login:" + username, 30L, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForHash().put("login_" + username, uuid, JSON.toJSONString(result));
+        stringRedisTemplate.expire("login_" + username, 30L, TimeUnit.DAYS);
         return new UserLoginRespDTO(uuid);
     }
 
     @Override
     public Boolean checkLogin(String username, String token) {
-        return stringRedisTemplate.opsForHash().get("login:" + username, token) != null;
+        return stringRedisTemplate.opsForHash().get("login_" + username, token) != null;
     }
 
     @Override
     public void logout(String username, String token) {
         if (checkLogin(username, token)) {
-            stringRedisTemplate.delete("login:" + username);
+            stringRedisTemplate.delete("login_" + username);
             return;
         }
         throw new ClientException("用户名或Token有误");
