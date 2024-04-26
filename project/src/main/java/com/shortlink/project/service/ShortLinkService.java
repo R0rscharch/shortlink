@@ -10,7 +10,7 @@ import com.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 
 public interface ShortLinkService extends IService<ShortLinkDO> {
 
-    ShortLinkCreateRespDTO creatShortLink(ShortLinkCreateReqDTO requestParam);
+    ShortLinkCreateRespDTO createShortLink(ShortLinkCreateReqDTO requestParam);
 
     IPage<ShortLinkPageRespDTO> pageShortLink(ShortLinkPageReqDTO requestParam);
 }

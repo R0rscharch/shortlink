@@ -26,7 +26,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private final RBloomFilter<String> shortUriCreateCachePenetrationBloomFilter;
 
     @Override
-    public ShortLinkCreateRespDTO creatShortLink(ShortLinkCreateReqDTO requestParam) {
+    public ShortLinkCreateRespDTO createShortLink(ShortLinkCreateReqDTO requestParam) {
         String shortLinkSuffix = generateSuffix(requestParam);
         String domain = requestParam.getDomain();
         String fullShortUrl = StrBuilder.create(domain)
