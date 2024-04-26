@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
  * 短链接分组实体
  */
 @Data
-@TableName("t_group_0")
+@TableName("t_group")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
