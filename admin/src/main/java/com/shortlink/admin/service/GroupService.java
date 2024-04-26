@@ -12,6 +12,8 @@ public interface GroupService extends IService<GroupDO> {
 
     void saveGroup(String groupName);
 
+    void saveGroup(String username,String groupName);
+
     List<ShortLinkGroupRespDTO> listGroup();
 
     void updateGroup(ShortLinkGroupUpdateReqDTO requestParam);

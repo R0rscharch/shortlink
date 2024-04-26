@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ShortLinkController {
 
-    ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService() {};
+    ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService() {
+    };
 
     /**
      * 创建短链接
