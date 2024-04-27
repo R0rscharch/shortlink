@@ -1,18 +1,17 @@
 package com.shortlink.admin.remote.dto;
 
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.shortlink.admin.common.convention.result.Result;
-import com.shortlink.admin.common.convention.result.Results;
 import com.shortlink.admin.remote.dto.req.ShortLinkCreateReqDTO;
 import com.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
+import com.shortlink.admin.remote.dto.req.ShortLinkUpdateReqDTO;
 import com.shortlink.admin.remote.dto.resp.ShortLinkCreateRespDTO;
 import com.shortlink.admin.remote.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import com.shortlink.admin.remote.dto.resp.ShortLinkPageRespDTO;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,9 +26,16 @@ public interface ShortLinkRemoteService {
      * 创建短链接
      */
     default Result<ShortLinkCreateRespDTO> createShortLink(ShortLinkCreateReqDTO requestParam) {
-        HttpRequest httpRequest = HttpUtil.createPost("http://127.0.0.1:8001/api/short-link/v1/create").body(JSON.toJSONString(requestParam));
-        HttpResponse execute = httpRequest.execute();
-        return Results.success(JSON.parseObject(execute.body(), ShortLinkCreateRespDTO.class));
+        String resultBodyStr = HttpUtil.post("http://127.0.0.1:8001/api/short-link/v1/create", JSON.toJSONString(requestParam));
+        return JSON.parseObject(resultBodyStr, new TypeReference<>() {
+        });
+    }
+
+    /**
+     * 修改短链接
+     */
+    default void updateShortLink(@RequestBody ShortLinkUpdateReqDTO requestParam) {
+        HttpUtil.post("http://127.0.0.1:8001/api/short-link/v1/update", JSON.toJSONString(requestParam));
     }
 
     /**
