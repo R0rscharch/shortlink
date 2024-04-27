@@ -12,6 +12,8 @@ import com.shortlink.project.common.convention.exception.ClientException;
 import com.shortlink.project.common.convention.exception.ServiceException;
 import com.shortlink.project.common.enums.VailDateTypeEnum;
 import com.shortlink.project.dao.entity.ShortLinkDO;
+import com.shortlink.project.dao.entity.ShortLinkGotoDO;
+import com.shortlink.project.dao.mapper.ShortLinkGotoMapper;
 import com.shortlink.project.dao.mapper.ShortLinkMapper;
 import com.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import com.shortlink.project.dto.req.ShortLinkPageReqDTO;
@@ -21,9 +23,12 @@ import com.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import com.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 import com.shortlink.project.service.ShortLinkService;
 import com.shortlink.project.util.HashUtil;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.redisson.api.RBloomFilter;
-import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +42,29 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
 
     private final RBloomFilter<String> shortUriCreateCachePenetrationBloomFilter;
 
-    private final RedissonClient redissonClient;
+    private final ShortLinkGotoMapper shortLinkGotoMapper;
+
+    @SneakyThrows
+    @Override
+    public void restoreUrl(String shortUri, ServletRequest request, ServletResponse response) {
+        String serverName = request.getServerName();
+        String fullShortUrl = serverName + '/' + shortUri;
+        LambdaQueryWrapper<ShortLinkGotoDO> shortLinkGotoDOLambdaQueryWrapper = Wrappers.lambdaQuery(ShortLinkGotoDO.class)
+                .eq(ShortLinkGotoDO::getFullShortUrl, fullShortUrl);
+        ShortLinkGotoDO shortLinkGotoDO = shortLinkGotoMapper.selectOne(shortLinkGotoDOLambdaQueryWrapper);
+        if (shortLinkGotoDO == null) {
+            return;
+        }
+        LambdaQueryWrapper<ShortLinkDO> queryWrapper = Wrappers.lambdaQuery(ShortLinkDO.class)
+                .eq(ShortLinkDO::getGid, shortLinkGotoDO.getGid())
+                .eq(ShortLinkDO::getFullShortUrl, fullShortUrl)
+                .eq(ShortLinkDO::getEnableStatus, 0)
+                .eq(ShortLinkDO::getDelFlag, 0);
+        ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
+        if (shortLinkDO != null) {
+            ((HttpServletResponse) response).sendRedirect(shortLinkDO.getOriginUrl());
+        }
+    }
 
     @Override
     public ShortLinkCreateRespDTO createShortLink(ShortLinkCreateReqDTO requestParam) {
@@ -63,11 +90,16 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 .delTime(0L)
                 .fullShortUrl(fullShortUrl)
                 .build();
+        ShortLinkGotoDO shortLinkGotoDO = ShortLinkGotoDO.builder()
+                .gid(requestParam.getGid())
+                .fullShortUrl(fullShortUrl)
+                .build();
         baseMapper.insert(shortLinkDO);
+        shortLinkGotoMapper.insert(shortLinkGotoDO);
         shortUriCreateCachePenetrationBloomFilter.add(fullShortUrl);
         return ShortLinkCreateRespDTO.builder()
                 .gid(shortLinkDO.getGid())
-                .fullShortUrl(shortLinkDO.getFullShortUrl())
+                .fullShortUrl("http://" + shortLinkDO.getFullShortUrl())
                 .originUrl(shortLinkDO.getOriginUrl())
                 .build();
     }
@@ -122,7 +154,11 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 .eq(ShortLinkDO::getEnableStatus, 0)
                 .eq(ShortLinkDO::getDelTime, 0);
         IPage<ShortLinkDO> results = baseMapper.selectPage(requestParam, queryWrapper);
-        return results.convert(each -> BeanUtil.toBean(each, ShortLinkPageRespDTO.class));
+        return results.convert(each -> {
+            ShortLinkPageRespDTO result = BeanUtil.toBean(each, ShortLinkPageRespDTO.class);
+            result.setDomain("http://" + result.getDomain());
+            return result;
+        });
     }
 
     @Override
