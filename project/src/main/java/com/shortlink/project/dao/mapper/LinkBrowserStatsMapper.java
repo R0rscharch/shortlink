@@ -2,8 +2,14 @@ package com.shortlink.project.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.shortlink.project.dao.entity.LinkBrowserStatsDO;
+import com.shortlink.project.dto.req.ShortLinkGroupStatsReqDTO;
+import com.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * 浏览器统计访问持久层
@@ -20,6 +26,7 @@ public interface LinkBrowserStatsMapper extends BaseMapper<LinkBrowserStatsDO> {
 
     /**
      * 根据短链接获取指定日期内浏览器监控数据
+     */
     @Select("SELECT " +
             "    browser, " +
             "    SUM(cnt) AS count " +
@@ -33,9 +40,9 @@ public interface LinkBrowserStatsMapper extends BaseMapper<LinkBrowserStatsDO> {
             "    full_short_url, gid, browser;")
     List<HashMap<String, Object>> listBrowserStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
 
-    *//**
+    /**
      * 根据分组获取指定日期内浏览器监控数据
-     *//*
+     */
     @Select("SELECT " +
             "    browser, " +
             "    SUM(cnt) AS count " +
@@ -46,5 +53,5 @@ public interface LinkBrowserStatsMapper extends BaseMapper<LinkBrowserStatsDO> {
             "    AND date BETWEEN #{param.startDate} and #{param.endDate} " +
             "GROUP BY " +
             "    gid, browser;")
-    List<HashMap<String, Object>> listBrowserStatsByGroup(@Param("param") ShortLinkGroupStatsReqDTO requestParam);*/
+    List<HashMap<String, Object>> listBrowserStatsByGroup(@Param("param") ShortLinkGroupStatsReqDTO requestParam);
 }

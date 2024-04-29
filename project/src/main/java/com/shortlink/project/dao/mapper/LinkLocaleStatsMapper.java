@@ -2,8 +2,13 @@ package com.shortlink.project.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.shortlink.project.dao.entity.LinkLocaleStatsDO;
+import com.shortlink.project.dto.req.ShortLinkGroupStatsReqDTO;
+import com.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 /**
  * 地区统计访问持久层
@@ -20,7 +25,7 @@ public interface LinkLocaleStatsMapper extends BaseMapper<LinkLocaleStatsDO> {
 
     /**
      * 根据短链接获取指定日期内地区监控数据
-     *//*
+     */
     @Select("SELECT " +
             "    province, " +
             "    SUM(cnt) AS cnt " +
@@ -34,9 +39,9 @@ public interface LinkLocaleStatsMapper extends BaseMapper<LinkLocaleStatsDO> {
             "    full_short_url, gid, province;")
     List<LinkLocaleStatsDO> listLocaleByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
 
-    *//**
+    /**
      * 根据分组获取指定日期内地区监控数据
-     *//*
+     */
     @Select("SELECT " +
             "    province, " +
             "    SUM(cnt) AS cnt " +
@@ -47,5 +52,5 @@ public interface LinkLocaleStatsMapper extends BaseMapper<LinkLocaleStatsDO> {
             "    AND date BETWEEN #{param.startDate} and #{param.endDate} " +
             "GROUP BY " +
             "    gid, province;")
-    List<LinkLocaleStatsDO> listLocaleByGroup(@Param("param") ShortLinkGroupStatsReqDTO requestParam);*/
+    List<LinkLocaleStatsDO> listLocaleByGroup(@Param("param") ShortLinkGroupStatsReqDTO requestParam);
 }
