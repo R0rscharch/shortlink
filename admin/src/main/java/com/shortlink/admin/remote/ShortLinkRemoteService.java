@@ -51,9 +51,9 @@ public interface ShortLinkRemoteService {
     }
 
     /**
-     * 查询分组短链接总理
+     * 查询分组短链接总量
      */
-    default Result<List<ShortLinkGroupCountQueryRespDTO>> listGroupShortLink(List<String> requestParam) {
+    default Result<List<ShortLinkGroupCountQueryRespDTO>> listGroupShortLinkCount(List<String> requestParam) {
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("requestParam", requestParam);
         String resultPageStr = HttpUtil.get("http://127.0.0.1:8001/api/short-link/v1/count", requestMap);

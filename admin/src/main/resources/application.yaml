@@ -12,3 +12,10 @@ spring:
       host: 192.168.52.128
       port: 6379
       password: hxj163213518
+
+short-link:
+  group:
+    max-num: 20
+  flow-limit:
+    time-window: 1
+    max-access-count: 3
