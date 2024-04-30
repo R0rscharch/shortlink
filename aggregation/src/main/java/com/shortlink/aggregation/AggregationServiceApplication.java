@@ -1,17 +1,22 @@
-package com.shortlink.admin;
+package com.shortlink.aggregation;
 
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 
+/**
+ * 短链接聚合应用
+ */
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients("com.shortlink.admin.remote")
-@MapperScan("com.shortlink.admin.dao.mapper")
-public class ShortLinkAdminApplication {
+@MapperScan(value = {
+        "com.shortlink.project.dao.mapper",
+        "com.shortlink.admin.dao.mapper"
+})
+public class AggregationServiceApplication {
+
     public static void main(String[] args) {
-        SpringApplication.run(ShortLinkAdminApplication.class, args);
+        SpringApplication.run(AggregationServiceApplication.class, args);
     }
 }

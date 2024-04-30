@@ -13,7 +13,7 @@ import com.shortlink.admin.dao.mapper.GroupMapper;
 import com.shortlink.admin.dto.req.ShortLinkGroupSortReqDTO;
 import com.shortlink.admin.dto.req.ShortLinkGroupUpdateReqDTO;
 import com.shortlink.admin.dto.resp.ShortLinkGroupRespDTO;
-import com.shortlink.admin.remote.ShortLinkRemoteService;
+import com.shortlink.admin.remote.ShortLinkActualRemoteService;
 import com.shortlink.admin.remote.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import com.shortlink.admin.service.GroupService;
 import com.shortlink.admin.util.RandomGenerator;
@@ -38,13 +38,10 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
 
     private final RedissonClient redissonClient;
 
+    private final ShortLinkActualRemoteService shortLinkActualRemoteService;
+
     @Value("${short-link.group.max-num}")
     private Integer groupMaxNum;
-
-    ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService() {
-    };
-
-
 
     @Override
     public void saveGroup(String groupName) {
@@ -86,7 +83,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implemen
                 .eq(GroupDO::getUsername, UserContext.getUsername())
                 .orderByDesc(GroupDO::getSortOrder, GroupDO::getUpdateTime);
         List<GroupDO> groupDOList = baseMapper.selectList(queryWrapper);
-        Result<List<ShortLinkGroupCountQueryRespDTO>> listResult = shortLinkRemoteService
+        Result<List<ShortLinkGroupCountQueryRespDTO>> listResult = shortLinkActualRemoteService
                 .listGroupShortLinkCount(groupDOList.stream().map(GroupDO::getGid).toList());
         List<ShortLinkGroupRespDTO> shortLinkGroupRespDTOList = BeanUtil.copyToList(groupDOList, ShortLinkGroupRespDTO.class);
         shortLinkGroupRespDTOList.forEach(each -> {

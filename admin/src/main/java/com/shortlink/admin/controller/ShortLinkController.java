@@ -1,28 +1,32 @@
 package com.shortlink.admin.controller;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shortlink.admin.common.convention.result.Result;
 import com.shortlink.admin.common.convention.result.Results;
-import com.shortlink.admin.remote.ShortLinkRemoteService;
+import com.shortlink.admin.remote.ShortLinkActualRemoteService;
 import com.shortlink.admin.remote.dto.req.ShortLinkCreateReqDTO;
 import com.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
 import com.shortlink.admin.remote.dto.req.ShortLinkUpdateReqDTO;
 import com.shortlink.admin.remote.dto.resp.ShortLinkCreateRespDTO;
 import com.shortlink.admin.remote.dto.resp.ShortLinkPageRespDTO;
-import org.springframework.web.bind.annotation.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 public class ShortLinkController {
 
-    ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService() {
-    };
+    private final ShortLinkActualRemoteService shortLinkActualRemoteService;
 
     /**
      * 创建短链接
      */
     @PostMapping("/api/short-link/admin/v1/create")
     public Result<ShortLinkCreateRespDTO> createShortLink(@RequestBody ShortLinkCreateReqDTO requestParam) {
-        return shortLinkRemoteService.createShortLink(requestParam);
+        return shortLinkActualRemoteService.createShortLink(requestParam);
     }
 
     /**
@@ -30,7 +34,7 @@ public class ShortLinkController {
      */
     @PostMapping("/api/short-link/admin/v1/update")
     public Result<Void> updateShortLink(@RequestBody ShortLinkUpdateReqDTO requestParam) {
-        shortLinkRemoteService.updateShortLink(requestParam);
+        shortLinkActualRemoteService.updateShortLink(requestParam);
         return Results.success();
     }
 
@@ -38,7 +42,7 @@ public class ShortLinkController {
      * 分页查询短链接
      */
     @GetMapping("/api/short-link/admin/v1/page")
-    public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkPageReqDTO requestParam) {
-        return shortLinkRemoteService.pageShortLink(requestParam);
+    public Result<Page<ShortLinkPageRespDTO>> pageShortLink(ShortLinkPageReqDTO requestParam) {
+        return shortLinkActualRemoteService.pageShortLink(requestParam.getGid(), requestParam.getOrderTag(), requestParam.getCurrent(), requestParam.getSize());
     }
 }
