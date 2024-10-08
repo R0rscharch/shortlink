@@ -28,8 +28,8 @@ import com.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 import com.shortlink.project.mq.producer.ShortLinkStatsSaveProducer;
 import com.shortlink.project.service.LinkStatsTodayService;
 import com.shortlink.project.service.ShortLinkService;
-import com.shortlink.project.util.HashUtil;
 import com.shortlink.project.util.LinkUtil;
+import com.shortlink.project.util.ShortUrlGenerator;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.Cookie;
@@ -44,6 +44,7 @@ import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
 import org.redisson.api.RReadWriteLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -77,9 +78,10 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
     private final LinkStatsTodayMapper linkStatsTodayMapper;
     private final LinkStatsTodayService linkStatsTodayService;
     private final ShortLinkStatsSaveProducer shortLinkStatsSaveProducer;
-
     @Value("${short-link.domain.default}")
     private String createShortLinkDefaultDomain;
+    @Autowired
+    private ShortUrlGenerator shortUrlGenerator;
 
     @SneakyThrows
     @Override
@@ -157,12 +159,12 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
 
     @Override
     public ShortLinkCreateRespDTO createShortLink(ShortLinkCreateReqDTO requestParam) {
-        String shortLinkSuffix = generateSuffix(requestParam);
+        String shortLinkSuffix = shortUrlGenerator.getShortUrl();
         String fullShortUrl = StrBuilder.create(createShortLinkDefaultDomain)
                 .append("/")
                 .append(shortLinkSuffix)
                 .toString();
-        ShortLinkDO shortLinkDO = ShortLinkDO.builder()
+       ShortLinkDO shortLinkDO = ShortLinkDO.builder()
                 .domain(createShortLinkDefaultDomain)
                 .originUrl(requestParam.getOriginUrl())
                 .gid(requestParam.getGid())
@@ -177,7 +179,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 .totalUip(0)
                 .delTime(0L)
                 .fullShortUrl(fullShortUrl)
-                .favicon(getFavicon(requestParam.getOriginUrl()))
+                //.favicon(getFavicon(requestParam.getOriginUrl()))
                 .build();
         ShortLinkGotoDO shortLinkGotoDO = ShortLinkGotoDO.builder()
                 .gid(requestParam.getGid())
@@ -391,24 +393,6 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
         producerMap.put("gid", gid);
         producerMap.put("statsRecord", JSON.toJSONString(statsRecord));
         shortLinkStatsSaveProducer.send(producerMap);
-    }
-
-    private String generateSuffix(ShortLinkCreateReqDTO requestParam) {
-        int customGenerateCount = 0;
-        String shorUri;
-        while (true) {
-            if (customGenerateCount > 10) {
-                throw new ServiceException("短链接频繁生成，请稍后再试");
-            }
-            String originUrl = requestParam.getOriginUrl();
-            originUrl += UUID.randomUUID().toString();
-            shorUri = HashUtil.hashToBase62(originUrl);
-            if (!shortUriCreateCachePenetrationBloomFilter.contains(createShortLinkDefaultDomain + "/" + shorUri)) {
-                break;
-            }
-            customGenerateCount++;
-        }
-        return shorUri;
     }
 
     @SneakyThrows
